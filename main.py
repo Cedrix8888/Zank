@@ -1,6 +1,6 @@
-from diffusers import DiffusionPipeline
+from diffusers import StableDiffusionPipeline
 
-pipeline = DiffusionPipeline.from_pretrained("stable-diffusion-v1-5/stable-diffusion-v1-5", use_safetensors=True)
+pipeline = StableDiffusionPipeline.from_pretrained("stable-diffusion-v1-5/stable-diffusion-v1-5", use_safetensors=True)
 # mps for M series; cuda for NVIDIA series
 pipeline.to("mps")
 prompt = "A marketing poster promoting Coca-Cola"
