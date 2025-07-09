@@ -1,2 +1,3 @@
-# agent for designer
-## developed with anaconda
+# 专业生成设计图的AI Agent
+我们使用python版本为3.12的anaconda虚拟环境进行开发和测试
+我们使用hugging_face社区的diffusers库进行基础的文生图
