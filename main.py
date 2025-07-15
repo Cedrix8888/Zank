@@ -1,8 +1,18 @@
-from diffusers import StableDiffusionPipeline
+import torch
+from diffusers import StableDiffusion3Pipeline
+from dotenv import load_dotenv
+import os
 
-pipeline = StableDiffusionPipeline.from_pretrained("stable-diffusion-v1-5/stable-diffusion-v1-5", use_safetensors=True)
-# mps for M series; cuda for NVIDIA series
-pipeline.to("mps")
-prompt = "A marketing poster promoting Coca-Cola"
-image = pipeline(prompt).images[0]
+load_dotenv()
+hf_token=os.getenv("HF_ACCESS_TOKEN")
+pipe = StableDiffusion3Pipeline.from_pretrained("stabilityai/stable-diffusion-3.5-large", torch_dtype=torch.bfloat16, token=hf_token)
+#cuda for NAVIDIA, mps for M series
+pipe = pipe.to("cuda")
+
+prompt="A marketing poster promoting Coca-Cola"
+image=pipe(
+    prompt,
+    num_inference_steps=28,
+    guidance_scale=3.5,
+).images[0]
 image.save("poster.png")
