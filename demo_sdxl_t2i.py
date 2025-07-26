@@ -6,15 +6,15 @@ import safetensors.torch as sf
 
 from PIL import Image
 from diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
-from diffusers import AutoencoderKL, UNet2DConditionModel
+from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL
+from diffusers.models.unets.unet_2d_condition import UNet2DConditionModel
 from diffusers.models.attention_processor import AttnProcessor2_0
 from transformers import CLIPTextModel, CLIPTokenizer
 from lib_layerdiffuse.vae import TransparentVAEDecoder, TransparentVAEEncoder
-from lib_layerdiffuse.utils import download_model
-
 
 # Load models
-
+# RealVisXL_V4.0 is a specific version of SDXL
+# We use float16 and fp16 for more compatibility and less memory usage
 sdxl_name = 'SG161222/RealVisXL_V4.0'
 tokenizer = CLIPTokenizer.from_pretrained(
     sdxl_name, subfolder="tokenizer")
@@ -25,71 +25,43 @@ text_encoder = CLIPTextModel.from_pretrained(
 text_encoder_2 = CLIPTextModel.from_pretrained(
     sdxl_name, subfolder="text_encoder_2", torch_dtype=torch.float16, variant="fp16")
 vae = AutoencoderKL.from_pretrained(
-    sdxl_name, subfolder="vae", torch_dtype=torch.bfloat16, variant="fp16")  # bfloat16 vae
+    sdxl_name, subfolder="vae", torch_dtype=torch.float16, variant="fp16")
 unet = UNet2DConditionModel.from_pretrained(
     sdxl_name, subfolder="unet", torch_dtype=torch.float16, variant="fp16")
 
-# This negative prompt is suggested by RealVisXL_V4 author
-# See also https://huggingface.co/SG161222/RealVisXL_V4.0
-# Note that in A111's normalization, a full "(full sentence)" is equal to "full sentence"
-# so we can just remove SG161222's braces
-
 default_negative = 'face asymmetry, eyes asymmetry, deformed eyes, open mouth'
 
-# SDP
+# SDP(Scaled Dot-Product Attention)
 
 unet.set_attn_processor(AttnProcessor2_0())
 vae.set_attn_processor(AttnProcessor2_0())
 
-# Download Mode
-
-path_ld_diffusers_sdxl_attn = download_model(
-    url='https://huggingface.co/lllyasviel/LayerDiffuse_Diffusers/resolve/main/ld_diffusers_sdxl_attn.safetensors',
-    local_path='./models/ld_diffusers_sdxl_attn.safetensors'
-)
-
-path_ld_diffusers_sdxl_vae_transparent_encoder = download_model(
-    url='https://huggingface.co/lllyasviel/LayerDiffuse_Diffusers/resolve/main/ld_diffusers_sdxl_vae_transparent_encoder.safetensors',
-    local_path='./models/ld_diffusers_sdxl_vae_transparent_encoder.safetensors'
-)
-
-path_ld_diffusers_sdxl_vae_transparent_decoder = download_model(
-    url='https://huggingface.co/lllyasviel/LayerDiffuse_Diffusers/resolve/main/ld_diffusers_sdxl_vae_transparent_decoder.safetensors',
-    local_path='./models/ld_diffusers_sdxl_vae_transparent_decoder.safetensors'
-)
-
-# Modify
-
-sd_offset = sf.load_file(path_ld_diffusers_sdxl_attn)
+# Merge weights to fine-tune the original model.
+sd_offset = sf.load_file("./models/ld_diffusers_sdxl_attn.safetensors")
 sd_origin = unet.state_dict()
-keys = sd_origin.keys()
-sd_merged = {}
-
-for k in sd_origin.keys():
-    if k in sd_offset:
-        sd_merged[k] = sd_origin[k] + sd_offset[k]
-    else:
-        sd_merged[k] = sd_origin[k]
-
+sd_merged = {
+    k: sd_origin[k] + sd_offset[k] if k in sd_offset else sd_origin[k]
+    for k in sd_origin.keys()
+}
 unet.load_state_dict(sd_merged, strict=True)
-del sd_offset, sd_origin, sd_merged, keys, k
+del sd_offset, sd_origin, sd_merged
 
-transparent_encoder = TransparentVAEEncoder(path_ld_diffusers_sdxl_vae_transparent_encoder)
-transparent_decoder = TransparentVAEDecoder(path_ld_diffusers_sdxl_vae_transparent_decoder)
+# Use the specific VAE
+transparent_encoder = TransparentVAEEncoder("./models/ld_diffusers_sdxl_vae_transparent_encoder.safetensors")
+transparent_decoder = TransparentVAEDecoder("./models/ld_diffusers_sdxl_vae_transparent_decoder.safetensors")
 
 # Pipelines
-
 pipeline = KDiffusionStableDiffusionXLPipeline(
     vae=vae,
     text_encoder=text_encoder,
-    tokenizer=tokenizer,
     text_encoder_2=text_encoder_2,
+    tokenizer=tokenizer,
     tokenizer_2=tokenizer_2,
     unet=unet,
     scheduler=None,  # We completely give up diffusers sampling system and use A1111's method
 )
 
-
+# Process images
 @torch.inference_mode()
 def pytorch2numpy(imgs):
     results = []
@@ -100,13 +72,11 @@ def pytorch2numpy(imgs):
         results.append(y)
     return results
 
-
 @torch.inference_mode()
 def numpy2pytorch(imgs):
     h = torch.from_numpy(np.stack(imgs, axis=0)).float() / 127.5 - 1.0
     h = h.movedim(-1, 1)
     return h
-
 
 def resize_without_crop(image, target_width, target_height):
     pil_image = Image.fromarray(image)
@@ -116,8 +86,7 @@ def resize_without_crop(image, target_width, target_height):
 
 with torch.inference_mode():
     guidance_scale = 7.0
-
-    rng = torch.Generator(device=memory_management.gpu).manual_seed(12345)
+    rng = torch.Generator().manual_seed(12345)
 
     memory_management.load_models_to_gpu([text_encoder, text_encoder_2])
 
