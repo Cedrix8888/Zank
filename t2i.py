@@ -1,15 +1,13 @@
-import os
+from PIL import Image
 import numpy as np
 import torch
-import memory_management
 import safetensors.torch as sf
-
-from PIL import Image
-from diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
+from transformers import CLIPTextModel, CLIPTokenizer
 from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL
 from diffusers.models.unets.unet_2d_condition import UNet2DConditionModel
 from diffusers.models.attention_processor import AttnProcessor2_0
-from transformers import CLIPTextModel, CLIPTokenizer
+
+from diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
 from lib_layerdiffuse.vae import TransparentVAEDecoder, TransparentVAEEncoder
 
 # Load models
@@ -36,7 +34,7 @@ default_negative = 'face asymmetry, eyes asymmetry, deformed eyes, open mouth'
 unet.set_attn_processor(AttnProcessor2_0())
 vae.set_attn_processor(AttnProcessor2_0())
 
-# Merge weights to fine-tune the original model.
+# Merge weights to fine-tune the original model
 sd_offset = sf.load_file("./models/ld_diffusers_sdxl_attn.safetensors")
 sd_origin = unet.state_dict()
 sd_merged = {
@@ -88,15 +86,9 @@ with torch.inference_mode():
     guidance_scale = 7.0
     rng = torch.Generator().manual_seed(12345)
 
-    memory_management.load_models_to_gpu([text_encoder, text_encoder_2])
-
-    positive_cond, positive_pooler = pipeline.encode_cropped_prompt_77tokens(
-        'glass bottle, high quality'
-    )
-
+    positive_cond, positive_pooler = pipeline.encode_cropped_prompt_77tokens('glass bottle, high quality')
     negative_cond, negative_pooler = pipeline.encode_cropped_prompt_77tokens(default_negative)
 
-    memory_management.load_models_to_gpu([unet])
     initial_latent = torch.zeros(size=(1, 4, 144, 112), dtype=unet.dtype, device=unet.device)
     latents = pipeline(
         initial_latent=initial_latent,
@@ -111,7 +103,6 @@ with torch.inference_mode():
         guidance_scale=guidance_scale,
     ).images
 
-    memory_management.load_models_to_gpu([vae, transparent_decoder, transparent_encoder])
     latents = latents.to(dtype=vae.dtype, device=vae.device) / vae.config.scaling_factor
     result_list, vis_list = transparent_decoder(vae, latents)
 

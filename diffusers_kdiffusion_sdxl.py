@@ -1,12 +1,14 @@
 import numpy as np
-
+import torch
 from tqdm.auto import trange
-from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl_img2img import *
+from typing import Optional, Union, List
+from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl_img2img import StableDiffusionXLImg2ImgPipeline
+from diffusers.utils.torch_utils import randn_tensor
+from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
 
-
+# DPM-Solver++ (2M) Sampling Algorithm
 @torch.no_grad()
-def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=None):
-    """DPM-Solver++(2M)."""
+def sample_dpmpp_2m(model, x: torch.Tensor, sigmas: torch.Tensor, extra_args=None, callback=None, disable=None):
     extra_args = {} if extra_args is None else extra_args
     s_in = x.new_ones([x.shape[0]])
     sigma_fn = lambda t: t.neg().exp()
@@ -29,11 +31,10 @@ def sample_dpmpp_2m(model, x, sigmas, extra_args=None, callback=None, disable=No
         old_denoised = denoised
     return x
 
-
 class KModel:
     def __init__(self, unet, timesteps=1000, linear_start=0.00085, linear_end=0.012):
         betas = torch.linspace(linear_start ** 0.5, linear_end ** 0.5, timesteps, dtype=torch.float64) ** 2
-        alphas = 1. - betas
+        alphas = 1.0 - betas
         alphas_cumprod = torch.tensor(np.cumprod(alphas, axis=0), dtype=torch.float32)
 
         self.sigmas = ((1 - alphas_cumprod) / alphas_cumprod) ** 0.5
@@ -55,7 +56,7 @@ class KModel:
         dists = log_sigma.to(self.log_sigmas.device) - self.log_sigmas[:, None]
         return dists.abs().argmin(dim=0).view(sigma.shape).to(sigma.device)
 
-    def get_sigmas_karras(self, n, rho=7.):
+    def get_sigmas_karras(self, n, rho=7.0):
         ramp = torch.linspace(0, 1, n)
         min_inv_rho = self.sigma_min ** (1 / rho)
         max_inv_rho = self.sigma_max ** (1 / rho)
@@ -75,17 +76,18 @@ class KModel:
 class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        device = kwargs.get("device", torch.device("mps" if torch.cuda.is_available() else "cpu"))
+        self.to(device)
         self.k_model = KModel(unet=kwargs['unet'])
 
     @torch.inference_mode()
     def encode_cropped_prompt_77tokens(self, prompt: str):
-        device = self.text_encoder.device
         tokenizers = [self.tokenizer, self.tokenizer_2]
         text_encoders = [self.text_encoder, self.text_encoder_2]
 
-        pooled_prompt_embeds = None
         prompt_embeds_list = []
-
+        pooled_prompt_embeds = None
+        
         for tokenizer, text_encoder in zip(tokenizers, text_encoders):
             text_input_ids = tokenizer(
                 prompt,
@@ -95,7 +97,7 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
                 return_tensors="pt",
             ).input_ids
 
-            prompt_embeds = text_encoder(text_input_ids.to(device), output_hidden_states=True)
+            prompt_embeds = text_encoder(text_input_ids.to(self.device), output_hidden_states=True)
 
             # Only last pooler_output is needed
             pooled_prompt_embeds = prompt_embeds.pooler_output
@@ -105,40 +107,45 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
             prompt_embeds_list.append(prompt_embeds)
 
         prompt_embeds = torch.concat(prompt_embeds_list, dim=-1)
-        prompt_embeds = prompt_embeds.to(dtype=self.unet.dtype, device=device)
+        prompt_embeds = prompt_embeds.to(dtype=self.unet.dtype, device=self.device)
 
         return prompt_embeds, pooled_prompt_embeds
 
     @torch.inference_mode()
     def __call__(
             self,
-            initial_latent: torch.FloatTensor = None,
+            initial_latent: Optional[torch.Tensor] = None,
             strength: float = 1.0,
+            height: int = 1024,
+            width: int = 1024,
             num_inference_steps: int = 25,
             guidance_scale: float = 5.0,
-            batch_size: Optional[int] = 1,
+            batch_size: int = 1,
             generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
-            prompt_embeds: Optional[torch.FloatTensor] = None,
-            negative_prompt_embeds: Optional[torch.FloatTensor] = None,
-            pooled_prompt_embeds: Optional[torch.FloatTensor] = None,
-            negative_pooled_prompt_embeds: Optional[torch.FloatTensor] = None,
+            prompt_embeds: Optional[torch.Tensor] = None,
+            negative_prompt_embeds: Optional[torch.Tensor] = None,
+            pooled_prompt_embeds: Optional[torch.Tensor] = None,
+            negative_pooled_prompt_embeds: Optional[torch.Tensor] = None,
     ):
-
-        device = self.unet.device
-
+        device = self.device
+        
         # Sigmas
-
         sigmas = self.k_model.get_sigmas_karras(int(num_inference_steps/strength))
         sigmas = sigmas[-(num_inference_steps + 1):].to(device)
 
         # Initial latents
-
+        if initial_latent is None:
+            batch_size = batch_size or 1
+            initial_latent = torch.randn(
+                (batch_size, self.unet.in_channels, height // 8, width // 8),
+                device=device,
+                dtype=self.unet.dtype
+            )
         _, C, H, W = initial_latent.shape
         noise = randn_tensor((batch_size, C, H, W), generator=generator, device=device, dtype=self.unet.dtype)
         latents = initial_latent.to(noise) + noise * sigmas[0].to(noise)
 
         # Shape
-
         height, width = latents.shape[-2:]
         height = height * self.vae_scale_factor
         width = width * self.vae_scale_factor
@@ -147,8 +154,16 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
         add_time_ids = torch.tensor([add_time_ids], dtype=self.unet.dtype)
         add_neg_time_ids = add_time_ids.clone()
 
+        # Prompt
+        if  prompt_embeds is None or pooled_prompt_embeds is None:            
+            prompt = ""
+            prompt_embeds, pooled_prompt_embeds = self.encode_cropped_prompt_77tokens(prompt)
+        if negative_prompt_embeds is None or negative_pooled_prompt_embeds is None:
+            negative_prompt = ""
+            negative_prompt_embeds, negative_pooled_prompt_embeds = self.encode_cropped_prompt_77tokens(negative_prompt)     
+            
+            
         # Batch
-
         latents = latents.to(device)
         add_time_ids = add_time_ids.repeat(batch_size, 1).to(device)
         add_neg_time_ids = add_neg_time_ids.repeat(batch_size, 1).to(device)
@@ -158,7 +173,6 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
         negative_pooled_prompt_embeds = negative_pooled_prompt_embeds.repeat(batch_size, 1).to(device)
 
         # Feeds
-
         sampler_kwargs = dict(
             cfg_scale=guidance_scale,
             positive=dict(
@@ -170,8 +184,7 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
             )
         )
 
-        # Sample
-
+        # Result
         results = sample_dpmpp_2m(self.k_model, latents, sigmas, extra_args=sampler_kwargs, disable=False)
 
         return StableDiffusionXLPipelineOutput(images=results)
