@@ -29,27 +29,27 @@ def zero_module(module):
         p.detach().zero_()
     return module
 
-class LatentTransparencyOffsetEncoder(torch.nn.Module):
+class LatentTransparencyOffsetEncoder(nn.Module):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.blocks = torch.nn.Sequential(
-            torch.nn.Conv2d(4, 32, kernel_size=3, padding=1, stride=1),
+        self.blocks = nn.Sequential(
+            nn.Conv2d(4, 32, kernel_size=3, padding=1, stride=1),
             nn.SiLU(),
-            torch.nn.Conv2d(32, 32, kernel_size=3, padding=1, stride=1),
+            nn.Conv2d(32, 32, kernel_size=3, padding=1, stride=1),
             nn.SiLU(),
-            torch.nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=2),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1, stride=2),
             nn.SiLU(),
-            torch.nn.Conv2d(64, 64, kernel_size=3, padding=1, stride=1),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1, stride=1),
             nn.SiLU(),
-            torch.nn.Conv2d(64, 128, kernel_size=3, padding=1, stride=2),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1, stride=2),
             nn.SiLU(),
-            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1, stride=1),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1, stride=1),
             nn.SiLU(),
-            torch.nn.Conv2d(128, 256, kernel_size=3, padding=1, stride=2),
+            nn.Conv2d(128, 256, kernel_size=3, padding=1, stride=2),
             nn.SiLU(),
-            torch.nn.Conv2d(256, 256, kernel_size=3, padding=1, stride=1),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1, stride=1),
             nn.SiLU(),
-            zero_module(torch.nn.Conv2d(256, 4, kernel_size=3, padding=1, stride=1)),
+            zero_module(nn.Conv2d(256, 4, kernel_size=3, padding=1, stride=1)),
         )
 
     def __call__(self, x):
@@ -57,7 +57,7 @@ class LatentTransparencyOffsetEncoder(torch.nn.Module):
 
 
 # 1024 * 1024 * 3 -> 16 * 16 * 512 -> 1024 * 1024 * 3
-class UNet1024(ModelMixin, ConfigMixin):
+class UNet1024(nn.Module):
     @register_to_config
     def __init__(
         self,
@@ -186,10 +186,6 @@ class UNet1024(ModelMixin, ConfigMixin):
         return sample
 
 
-def checkerboard(shape):
-    return np.indices(shape).sum(axis=0) % 2
-
-
 def build_alpha_pyramid(color, alpha, dk=1.2):
     # Written by lvmin at Stanford
     # Massive iterative Gaussian filters are mathematically consistent to pyramid.
@@ -209,32 +205,14 @@ def build_alpha_pyramid(color, alpha, dk=1.2):
         current_alpha = cv2.resize(current_alpha, (int(W / dk), int(H / dk)), interpolation=cv2.INTER_AREA)[:, :, None]
     return pyramid[::-1]
 
-
-def pad_rgb(np_rgba_hwc_uint8):
-    # Written by lvmin at Stanford
-    # Massive iterative Gaussian filters are mathematically consistent to pyramid.
-
-    np_rgba_hwc = np_rgba_hwc_uint8.astype(np.float32) / 255.0
-    pyramid = build_alpha_pyramid(color=np_rgba_hwc[..., :3], alpha=np_rgba_hwc[..., 3:])
-
-    top_c, top_a = pyramid[0]
-    fg = np.sum(top_c, axis=(0, 1), keepdims=True) / np.sum(top_a, axis=(0, 1), keepdims=True).clip(1e-8, 1e32)
-
-    for layer_c, layer_a in pyramid:
-        layer_h, layer_w, _ = layer_c.shape
-        fg = cv2.resize(fg, (layer_w, layer_h), interpolation=cv2.INTER_LINEAR)
-        fg = layer_c + fg * (1.0 - layer_a)
-
-    return fg
-
-
+# Deterministic sampling
 def dist_sample_deterministic(dist: DiagonalGaussianDistribution, perturbation: torch.Tensor):
     # Modified from diffusers.models.autoencoders.vae.DiagonalGaussianDistribution.sample()
     x = dist.mean + dist.std * perturbation.to(dist.std)
     return x
 
 
-class TransparentVAEDecoder(torch.nn.Module):
+class TransparentVAEDecoder(nn.Module):
     def __init__(self, filename, dtype=torch.float16, *args, **kwargs):
         super().__init__(*args, **kwargs)
         sd = sf.load_file(filename)
@@ -314,18 +292,16 @@ class TransparentVAEDecoder(torch.nn.Module):
         return result_list, vis_list
 
 
-class TransparentVAEEncoder(torch.nn.Module):
+class TransparentVAEEncoder(nn.Module):
     def __init__(self, filename, dtype=torch.float16, alpha=300.0, *args, **kwargs):
         super().__init__(*args, **kwargs)
         sd = sf.load_file(filename)
-        self.dtype = dtype
-
         model = LatentTransparencyOffsetEncoder()
         model.load_state_dict(sd, strict=True)
         model.to(dtype=self.dtype)
         model.eval()
-
         self.model = model
+        self.dtype = dtype
 
         # similar to LoRA's alpha to avoid initial zero-initialized outputs being too small
         self.alpha = alpha

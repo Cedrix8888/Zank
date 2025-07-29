@@ -101,6 +101,12 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
 
             # Only last pooler_output is needed
             pooled_prompt_embeds = prompt_embeds.pooler_output
+            if pooled_prompt_embeds is None:
+                pooled_prompt_embeds = torch.zeros(
+                    (1, text_encoder.config.hidden_size),
+                    device=self.device,
+                    dtype=self.unet.dtype
+                )
 
             # "2" because SDXL always indexes from the penultimate layer.
             prompt_embeds = prompt_embeds.hidden_states[-2]
@@ -158,11 +164,14 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
         if  prompt_embeds is None or pooled_prompt_embeds is None:            
             prompt = ""
             prompt_embeds, pooled_prompt_embeds = self.encode_cropped_prompt_77tokens(prompt)
+            assert prompt_embeds is not None, "Failed to generate prompt_embeds"
+            assert pooled_prompt_embeds is not None, "Failed to generate pooled_prompt_embeds"
         if negative_prompt_embeds is None or negative_pooled_prompt_embeds is None:
             negative_prompt = ""
-            negative_prompt_embeds, negative_pooled_prompt_embeds = self.encode_cropped_prompt_77tokens(negative_prompt)     
-            
-            
+            negative_prompt_embeds, negative_pooled_prompt_embeds = self.encode_cropped_prompt_77tokens(negative_prompt)
+            assert negative_prompt_embeds is not None, "Failed to generate negative_prompt_embeds"
+            assert negative_pooled_prompt_embeds is not None, "Failed to generate negative_pooled_prompt_embeds"
+
         # Batch
         latents = latents.to(device)
         add_time_ids = add_time_ids.repeat(batch_size, 1).to(device)
@@ -186,5 +195,4 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
 
         # Result
         results = sample_dpmpp_2m(self.k_model, latents, sigmas, extra_args=sampler_kwargs, disable=False)
-
-        return StableDiffusionXLPipelineOutput(images=results)
+        return results
