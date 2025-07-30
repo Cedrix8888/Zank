@@ -81,10 +81,7 @@ with torch.inference_mode():
     )
 
     latents = latents.to(dtype=vae.dtype, device=vae.device) / 0.18215
-    result_list, vis_list = transparent_decoder(vae, latents)
+    result_list = transparent_decoder(vae, latents)
 
     for i, image in enumerate(result_list):
         Image.fromarray(image).save(f'./imgs/outputs/t2i_{i}_transparent.png', format='PNG')
-
-    for i, image in enumerate(vis_list):
-        Image.fromarray(image).save(f'./imgs/outputs/t2i_{i}_visualization.png', format='PNG')

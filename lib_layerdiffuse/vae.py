@@ -17,8 +17,6 @@ import safetensors.torch as sf
 
 from tqdm import tqdm
 from typing import Optional, Tuple
-from diffusers.configuration_utils import ConfigMixin, register_to_config
-from diffusers.models.modeling_utils import ModelMixin
 from diffusers.models.unets.unet_2d_blocks import UNetMidBlock2D, get_down_block, get_up_block
 from diffusers.models.autoencoders.vae import DiagonalGaussianDistribution
 
@@ -58,7 +56,6 @@ class LatentTransparencyOffsetEncoder(nn.Module):
 
 # 1024 * 1024 * 3 -> 16 * 16 * 512 -> 1024 * 1024 * 3
 class UNet1024(nn.Module):
-    @register_to_config
     def __init__(
         self,
         in_channels: int = 3,
@@ -184,7 +181,24 @@ class UNet1024(nn.Module):
         sample = self.conv_act(sample)
         sample = self.conv_out(sample)
         return sample
+    
+# Avoid loss of information in transparent areas during encoding.
+def pad_rgb(np_rgba_hwc_uint8):
+    # Written by lvmin at Stanford
+    # Massive iterative Gaussian filters are mathematically consistent to pyramid.
 
+    np_rgba_hwc = np_rgba_hwc_uint8.astype(np.float32) / 255.0
+    pyramid = build_alpha_pyramid(color=np_rgba_hwc[..., :3], alpha=np_rgba_hwc[..., 3:])
+
+    top_c, top_a = pyramid[0]
+    fg = np.sum(top_c, axis=(0, 1), keepdims=True) / np.sum(top_a, axis=(0, 1), keepdims=True).clip(1e-8, 1e32)
+
+    for layer_c, layer_a in pyramid:
+        layer_h, layer_w, _ = layer_c.shape
+        fg = cv2.resize(fg, (layer_w, layer_h), interpolation=cv2.INTER_LINEAR)
+        fg = layer_c + fg * (1.0 - layer_a)
+
+    return fg
 
 def build_alpha_pyramid(color, alpha, dk=1.2):
     # Written by lvmin at Stanford
@@ -224,6 +238,7 @@ class TransparentVAEDecoder(nn.Module):
         self.dtype = dtype
         return
 
+    # Add alpha to the rgb
     @torch.no_grad()
     def estimate_single_pass(self, pixel, latent):
         y = self.model(pixel, latent)
@@ -266,7 +281,6 @@ class TransparentVAEDecoder(nn.Module):
         pixel = (pixel * 0.5 + 0.5).clip(0, 1).to(self.dtype)
         latent = latent.to(self.dtype)
         result_list = []
-        vis_list = []
 
         for i in range(int(latent.shape[0])):
             y = self.estimate_augmented(pixel[i:i + 1], latent[i:i + 1])
@@ -274,22 +288,11 @@ class TransparentVAEDecoder(nn.Module):
             y = y.clip(0, 1).movedim(1, -1)
             alpha = y[..., :1]
             fg = y[..., 1:]
-
-            B, H, W, C = fg.shape
-            cb = checkerboard(shape=(H // 64, W // 64))
-            cb = cv2.resize(cb, (W, H), interpolation=cv2.INTER_NEAREST)
-            cb = (0.5 + (cb - 0.5) * 0.1)[None, ..., None]
-            cb = torch.from_numpy(cb).to(fg)
-
-            vis = (fg * alpha + cb * (1 - alpha))[0]
-            vis = (vis * 255.0).detach().cpu().float().numpy().clip(0, 255).astype(np.uint8)
-            vis_list.append(vis)
-
             png = torch.cat([fg, alpha], dim=3)[0]
             png = (png * 255.0).detach().cpu().float().numpy().clip(0, 255).astype(np.uint8)
             result_list.append(png)
 
-        return result_list, vis_list
+        return result_list
 
 
 class TransparentVAEEncoder(nn.Module):

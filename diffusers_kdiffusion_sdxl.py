@@ -4,7 +4,6 @@ from tqdm.auto import trange
 from typing import Optional, Union, List
 from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl_img2img import StableDiffusionXLImg2ImgPipeline
 from diffusers.utils.torch_utils import randn_tensor
-from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
 
 # DPM-Solver++ (2M) Sampling Algorithm
 @torch.no_grad()
