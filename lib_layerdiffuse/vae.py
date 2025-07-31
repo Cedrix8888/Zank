@@ -95,7 +95,7 @@ class UNet1024(nn.Module):
                 num_layers=layers_per_block,
                 in_channels=input_channel,
                 out_channels=output_channel,
-                temb_channels=1280, # In SDXL is usually 1280
+                temb_channels=0, # In SDXL is usually 1280
                 add_downsample=not is_final_block,
                 resnet_eps=norm_eps,
                 resnet_act_fn=act_fn,
@@ -111,7 +111,7 @@ class UNet1024(nn.Module):
         # mid
         self.mid_block = UNetMidBlock2D(
             in_channels=block_out_channels[-1],
-            temb_channels=1280,
+            temb_channels=0,
             dropout=dropout,
             resnet_eps=norm_eps,
             resnet_act_fn=act_fn,
@@ -139,7 +139,7 @@ class UNet1024(nn.Module):
                 in_channels=input_channel,
                 out_channels=output_channel,
                 prev_output_channel=prev_output_channel,
-                temb_channels=1280,
+                temb_channels=0,
                 add_upsample=not is_final_block,
                 resnet_eps=norm_eps,
                 resnet_act_fn=act_fn,
