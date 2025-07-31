@@ -95,7 +95,7 @@ class UNet1024(nn.Module):
                 num_layers=layers_per_block,
                 in_channels=input_channel,
                 out_channels=output_channel,
-                temb_channels=0, #0 indicates not using time embedding.
+                temb_channels=1280, # In SDXL is usually 1280
                 add_downsample=not is_final_block,
                 resnet_eps=norm_eps,
                 resnet_act_fn=act_fn,
@@ -111,7 +111,7 @@ class UNet1024(nn.Module):
         # mid
         self.mid_block = UNetMidBlock2D(
             in_channels=block_out_channels[-1],
-            temb_channels=0, #0 indicates not using time embedding.
+            temb_channels=1280,
             dropout=dropout,
             resnet_eps=norm_eps,
             resnet_act_fn=act_fn,
@@ -139,7 +139,7 @@ class UNet1024(nn.Module):
                 in_channels=input_channel,
                 out_channels=output_channel,
                 prev_output_channel=prev_output_channel,
-                temb_channels=0, # 0 indicates not using time embedding.
+                temb_channels=1280,
                 add_upsample=not is_final_block,
                 resnet_eps=norm_eps,
                 resnet_act_fn=act_fn,
@@ -232,10 +232,10 @@ class TransparentVAEDecoder(nn.Module):
         sd = sf.load_file(filename)
         model = UNet1024(in_channels=3, out_channels=4)
         model.load_state_dict(sd, strict=True)
+        self.dtype = dtype
         model.to(dtype=dtype)
         model.eval()
         self.model = model
-        self.dtype = dtype
         return
 
     # Add alpha to the rgb
@@ -301,10 +301,10 @@ class TransparentVAEEncoder(nn.Module):
         sd = sf.load_file(filename)
         model = LatentTransparencyOffsetEncoder()
         model.load_state_dict(sd, strict=True)
+        self.dtype = dtype
         model.to(dtype=self.dtype)
         model.eval()
         self.model = model
-        self.dtype = dtype
 
         # similar to LoRA's alpha to avoid initial zero-initialized outputs being too small
         self.alpha = alpha
