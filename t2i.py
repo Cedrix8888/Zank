@@ -61,8 +61,14 @@ pipeline = KDiffusionStableDiffusionXLPipeline(
 
 with torch.inference_mode():
     guidance_scale = 7.0
-    rng = torch.Generator().manual_seed(12345)
-
+    rng = torch.Generator(device="mps").manual_seed(12345)
+    text_encoder.to("mps")
+    text_encoder_2.to("mps")
+    unet.to("mps")
+    vae.to("mps")
+    transparent_decoder.to("mps")
+    transparent_encoder.to("mps")
+    
     positive_cond, positive_pooler = pipeline.encode_cropped_prompt_77tokens(positive_prompt)
     negative_cond, negative_pooler = pipeline.encode_cropped_prompt_77tokens(default_negative)
 
@@ -78,7 +84,8 @@ with torch.inference_mode():
         negative_pooled_prompt_embeds=negative_pooler,
         generator=rng,
         guidance_scale=guidance_scale,
-    )
+    ).images
+
 
     latents = latents.to(dtype=vae.dtype, device=vae.device) / 0.18215
     result_list = transparent_decoder(vae, latents)

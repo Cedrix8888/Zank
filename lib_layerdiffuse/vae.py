@@ -81,6 +81,7 @@ class UNet1024(nn.Module):
         self.latent_conv_in = zero_module(nn.Conv2d(4, block_out_channels[2], kernel_size=1))
 
         self.down_blocks = nn.ModuleList([])
+        self.mid_block = None
         self.up_blocks = nn.ModuleList([])
 
         # down
@@ -95,7 +96,7 @@ class UNet1024(nn.Module):
                 num_layers=layers_per_block,
                 in_channels=input_channel,
                 out_channels=output_channel,
-                temb_channels=0, # In SDXL is usually 1280
+                temb_channels=None,
                 add_downsample=not is_final_block,
                 resnet_eps=norm_eps,
                 resnet_act_fn=act_fn,
@@ -111,7 +112,7 @@ class UNet1024(nn.Module):
         # mid
         self.mid_block = UNetMidBlock2D(
             in_channels=block_out_channels[-1],
-            temb_channels=0,
+            temb_channels=None,
             dropout=dropout,
             resnet_eps=norm_eps,
             resnet_act_fn=act_fn,
@@ -139,7 +140,7 @@ class UNet1024(nn.Module):
                 in_channels=input_channel,
                 out_channels=output_channel,
                 prev_output_channel=prev_output_channel,
-                temb_channels=0,
+                temb_channels=None,
                 add_upsample=not is_final_block,
                 resnet_eps=norm_eps,
                 resnet_act_fn=act_fn,

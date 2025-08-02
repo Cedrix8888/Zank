@@ -1,9 +1,10 @@
-import numpy as np
 import torch
 from tqdm.auto import trange
 from typing import Optional, Union, List
-from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl_img2img import StableDiffusionXLImg2ImgPipeline
+from diffusers.pipelines.stable_diffusion_xl.pipeline_stable_diffusion_xl import StableDiffusionXLPipeline
+from diffusers.pipelines.stable_diffusion_xl.pipeline_output import  StableDiffusionXLPipelineOutput
 from diffusers.utils.torch_utils import randn_tensor
+
 
 # DPM-Solver++ (2M) Sampling Algorithm
 @torch.no_grad()
@@ -34,13 +35,12 @@ class KModel:
     def __init__(self, unet, timesteps=1000, linear_start=0.00085, linear_end=0.012):
         betas = torch.linspace(linear_start ** 0.5, linear_end ** 0.5, timesteps, dtype=torch.float64) ** 2
         alphas = 1.0 - betas
-        alphas_cumprod = torch.tensor(np.cumprod(alphas, axis=0), dtype=torch.float32)
+        alphas_cumprod = alphas.cumprod(dim=0).clone().detach()
 
         self.sigmas = ((1 - alphas_cumprod) / alphas_cumprod) ** 0.5
         self.log_sigmas = self.sigmas.log()
         self.sigma_data = 1.0
         self.unet = unet
-        return
 
     @property
     def sigma_min(self):
@@ -72,15 +72,14 @@ class KModel:
         return x - noise_pred * sigma[:, None, None, None]
 
 
-class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
+class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLPipeline):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        device = kwargs.get("device", torch.device("mps" if torch.cuda.is_available() else "cpu"))
-        self.to(device)
         self.k_model = KModel(unet=kwargs['unet'])
-
+           
     @torch.inference_mode()
     def encode_cropped_prompt_77tokens(self, prompt: str):
+        device = self.unet.device
         tokenizers = [self.tokenizer, self.tokenizer_2]
         text_encoders = [self.text_encoder, self.text_encoder_2]
 
@@ -96,14 +95,14 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
                 return_tensors="pt",
             ).input_ids
 
-            prompt_embeds = text_encoder(text_input_ids.to(self.device), output_hidden_states=True)
+            prompt_embeds = text_encoder(text_input_ids.to(device), output_hidden_states=True)
 
             # Only last pooler_output is needed
             pooled_prompt_embeds = prompt_embeds.pooler_output
             if pooled_prompt_embeds is None:
                 pooled_prompt_embeds = torch.zeros(
                     (1, text_encoder.config.hidden_size),
-                    device=self.device,
+                    device=device,
                     dtype=self.unet.dtype
                 )
 
@@ -112,7 +111,7 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
             prompt_embeds_list.append(prompt_embeds)
 
         prompt_embeds = torch.concat(prompt_embeds_list, dim=-1)
-        prompt_embeds = prompt_embeds.to(dtype=self.unet.dtype, device=self.device)
+        prompt_embeds = prompt_embeds.to(dtype=self.unet.dtype, device=device)
 
         return prompt_embeds, pooled_prompt_embeds
 
@@ -132,7 +131,7 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
             pooled_prompt_embeds: Optional[torch.Tensor] = None,
             negative_pooled_prompt_embeds: Optional[torch.Tensor] = None,
     ):
-        device = self.device
+        device = self.unet.device
         
         # Sigmas
         sigmas = self.k_model.get_sigmas_karras(int(num_inference_steps/strength))
@@ -194,4 +193,4 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLImg2ImgPipeline):
 
         # Result
         results = sample_dpmpp_2m(self.k_model, latents, sigmas, extra_args=sampler_kwargs, disable=False)
-        return results
+        return StableDiffusionXLPipelineOutput(images=results)
