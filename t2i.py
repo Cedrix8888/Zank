@@ -12,6 +12,7 @@ from lib_layerdiffuse.vae import TransparentVAEDecoder, TransparentVAEEncoder
 # Load models
 # RealVisXL_V4.0 is a specific version of SDXL
 # We use float16 and fp16 for more compatibility and less memory usage
+device = "mps"
 sdxl_name = 'SG161222/RealVisXL_V4.0'
 tokenizer = CLIPTokenizer.from_pretrained(
     sdxl_name, subfolder="tokenizer")
@@ -61,13 +62,13 @@ pipeline = KDiffusionStableDiffusionXLPipeline(
 
 with torch.inference_mode():
     guidance_scale = 7.0
-    rng = torch.Generator(device="mps").manual_seed(12345)
-    text_encoder.to("mps")
-    text_encoder_2.to("mps")
-    unet.to("mps")
-    vae.to("mps")
-    transparent_decoder.to("mps")
-    transparent_encoder.to("mps")
+    rng = torch.Generator(device=device).manual_seed(12345)
+    text_encoder.to(device)
+    text_encoder_2.to(device)
+    unet.to(device)
+    vae.to(device)
+    transparent_decoder.to(device)
+    transparent_encoder.to(device)
     
     positive_cond, positive_pooler = pipeline.encode_cropped_prompt_77tokens(positive_prompt)
     negative_cond, negative_pooler = pipeline.encode_cropped_prompt_77tokens(default_negative)
