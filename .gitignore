@@ -1,6 +1,5 @@
 hf_download/
 private/
-*.safetensors
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
