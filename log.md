@@ -3,7 +3,7 @@
 ### 2025.7.31: UNet1024 missing keys: temb_channel
 ### version_3: first release implemented on mps but failed for some mps's restriction and memory insufficiency
 ### t2i: glass bottle, high quality
-### iti
+### iti: a handsome man with curly hair, high quality
 
 
 
