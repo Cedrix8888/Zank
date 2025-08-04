@@ -74,7 +74,7 @@ with torch.inference_mode():
     positive_cond, positive_pooler = pipeline.encode_cropped_prompt_77tokens(positive_prompt)
     negative_cond, negative_pooler = pipeline.encode_cropped_prompt_77tokens(default_negative)
 
-    initial_latent = torch.zeros(size=(1, 4, 144, 112), dtype=unet.dtype, device=unet.device)
+    initial_latent = torch.zeros(size=(1, 4, 128, 128), dtype=unet.dtype, device=unet.device)
     latents = pipeline(
         initial_latent=initial_latent,
         strength=1.0,
