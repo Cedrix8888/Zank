@@ -62,7 +62,6 @@ pipeline = KDiffusionStableDiffusionXLPipeline(
 
 with torch.inference_mode():
     guidance_scale = 7.0
-    # rng = torch.Generator().manual_seed(12345)
     rng = torch.Generator(device=device).manual_seed(12345)
     text_encoder.to(device)
     text_encoder_2.to(device)
