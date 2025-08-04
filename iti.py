@@ -1,5 +1,6 @@
 from PIL import Image
 import torch
+import numpy as np
 import safetensors.torch as sf
 from transformers import CLIPTextModel, CLIPTokenizer
 from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL
@@ -89,8 +90,10 @@ with torch.inference_mode():
     positive_cond, positive_pooler = pipeline.encode_cropped_prompt_77tokens(positive_prompt)
     negative_cond, negative_pooler = pipeline.encode_cropped_prompt_77tokens(default_negative)
 
-    initial_latent = torch.zeros(size=(1, 4, 128, 128), dtype=unet.dtype, device=unet.device)
-    latents = pipeline(
+    initial_latent = [np.array(Image.open('./imgs/inputs/causal_cut.png'))]
+    initial_latent = transparent_encoder(vae, initial_latent) * 0.18215
+    initial_latent = initial_latent.to(dtype=unet.dtype, device=unet.device)
+    latents=pipeline(
         initial_latent=initial_latent,
         strength=1.0,
         num_inference_steps=25,
@@ -108,4 +111,4 @@ with torch.inference_mode():
     result_list = transparent_decoder(vae, latents)
 
     for i, image in enumerate(result_list):
-        Image.fromarray(image).save(f'./imgs/outputs/t2i_{i}_transparent.png', format='PNG')
+        Image.fromarray(image).save(f'./imgs/outputs/i2i_{i}_transparent.png', format='PNG')
