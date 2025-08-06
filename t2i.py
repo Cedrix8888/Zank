@@ -78,7 +78,7 @@ pipeline = KDiffusionStableDiffusionXLPipeline(
 
 with torch.inference_mode():
     guidance_scale = 7.0
-    rng = torch.Generator(device=device).manual_seed(12345)
+    rng = torch.Generator(device=device).seed()
     text_encoder.to(device)
     text_encoder_2.to(device)
     unet.to(device)
@@ -89,12 +89,12 @@ with torch.inference_mode():
     positive_cond, positive_pooler = pipeline.encode_cropped_prompt_77tokens(positive_prompt)
     negative_cond, negative_pooler = pipeline.encode_cropped_prompt_77tokens(default_negative)
 
-    initial_latent = torch.zeros(size=(1, 4, 128, 128), dtype=unet.dtype, device=unet.device)
+    initial_latent = torch.zeros(size=(2, 4, 128, 128), dtype=unet.dtype, device=unet.device)
     latents = pipeline(
         initial_latent=initial_latent,
         strength=1.0,
         num_inference_steps=25,
-        batch_size=1,
+        batch_size=2,
         prompt_embeds=positive_cond,
         negative_prompt_embeds=negative_cond,
         pooled_prompt_embeds=positive_pooler,
