@@ -47,3 +47,6 @@ diffusion_pytorch_model.fp16.safetensors:
 Please enter positive prompt.A marketing poster promoting Coca-Cola
 100%|█████| 25/25 [00:20<00:00,  1.20it/s]
 100%|█████████████████████████████████████████████| 8/8 [00:02<00:00,  3.55it/s]
+
+
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.58 GiB. GPU 0 has a total capacity of 14.74 GiB of which 2.98 GiB is free. Process 70924 has 11.76 GiB memory in use. Of the allocated memory 10.15 GiB is allocated by PyTorch, and 1.48 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management 
