@@ -1,12 +1,12 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
+import SideBar from '../FeatureComponent/SideBar/SideBar.jsx';
+import './Layout.css';
 
-function Layout (){
+function Layout() {
   return (
-    <div>
-      <nav>
-        <Link to="/" className="nav-link">首页</Link>
-      </nav>      
-      <main>
+    <div className='layout'>
+      <SideBar />
+      <main className="main-content">
         <Outlet />
       </main>
       <footer>

@@ -1,0 +1,16 @@
+.layout {
+    display: flex;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+    width: calc(100% - 250px);
+}
+
+footer {
+    margin-left: 250px;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+}
