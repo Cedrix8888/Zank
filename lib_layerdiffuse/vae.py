@@ -233,10 +233,10 @@ class TransparentVAEDecoder(nn.Module):
         sd = sf.load_file(filename)
         model = UNet1024(in_channels=3, out_channels=4)
         model.load_state_dict(sd, strict=True)
-        self.dtype = dtype
         model.to(dtype=dtype)
         model.eval()
         self.model = model
+        self.dtype = dtype
         return
 
     # Add alpha to the rgb
