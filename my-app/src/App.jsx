@@ -1,9 +1,10 @@
 import { Routes, Route} from 'react-router-dom';
-import Layout from "./components/Layout/Layout.jsx";
-import Home from "./pages/Home/Home.jsx";
-function App() {
+import Layout from "./components/Layout.jsx";
+import Home from "./pages/Home.jsx";
+
+export default function App() {
   return (
-    <div className="App">
+    <div className="bg-white">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
@@ -12,5 +13,3 @@ function App() {
     </div>
   )
 }
-
-export default App;
