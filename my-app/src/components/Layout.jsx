@@ -3,7 +3,7 @@ import Header from './FeatureComponent/Header.jsx';
 
 export default function Layout() {
   return (
-    <div className="min-h-screen pt-16">
+    <div>
         <Header />
         <main>
           <Outlet />
