@@ -1,41 +1,11 @@
-import { Link, useLocation } from 'react-router-dom';
-import './Sidebar.css';
+import { Link } from 'react-router-dom';
 
-
-function Sidebar() {
-    const location = useLocation();
-    const getPlaceholder = () => {
-        switch (location.pathname) {
-            case '/':
-                return 'Search in Dashboard';
-            case '/projects':
-                return 'Search in Projects';
-            case '/settings':
-                return 'Search in Settings';
-            default:
-                return '';
-        }
-    }
+export default function Sidebar() {
     return (
-        <div className="sidebar">
-            <div className="sidebar-input">
-                <input type="text" placeholder="" />
+        <div className="top-[36.5px] fixed left-0 w-80 h-full bg-gray-100 shadow-lg">
+            <div className="mx-4 mt-4 bg-gray-200">
+                <input type="text" className="" placeholder="" />
             </div>
-            <nav className="sidebar-nav">
-                <ul>
-                    <li>
-                        <Link to="/">Dashboard</Link>
-                    </li>
-                    <li>
-                        <Link to="/projects">Projects</Link>
-                    </li>
-                    <li>
-                        <Link to="/settings">Settings</Link>
-                    </li>
-                </ul>
-            </nav>
         </div>
     );
 }
-
-export default Sidebar;
