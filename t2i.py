@@ -1,4 +1,5 @@
 from PIL import Image
+import random
 import torch
 import safetensors.torch as sf
 from transformers import CLIPTextModel, CLIPTokenizer
@@ -78,7 +79,8 @@ pipeline = KDiffusionStableDiffusionXLPipeline(
 
 with torch.inference_mode():
     guidance_scale = 7.0
-    rng = torch.Generator(device=device).seed()
+    seed=random.randint(0, 1000000)
+    rng = torch.Generator(device=device).manual_seed(seed)
     text_encoder.to(device)
     text_encoder_2.to(device)
     unet.to(device)

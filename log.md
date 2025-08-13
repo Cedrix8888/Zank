@@ -50,3 +50,19 @@ Please enter positive prompt.A marketing poster promoting Coca-Cola
 
 
 torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 4.58 GiB. GPU 0 has a total capacity of 14.74 GiB of which 2.98 GiB is free. Process 70924 has 11.76 GiB memory in use. Of the allocated memory 10.15 GiB is allocated by PyTorch, and 1.48 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management 
+
+2025.8.13
+Traceback (most recent call last):
+  File "/content/Zank/t2i.py", line 93, in <module>
+    latents = pipeline(
+              ^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/content/Zank/diffusers_kdiffusion_sdxl.py", line 149, in __call__
+    noise = randn_tensor((batch_size, C, H, W), generator=generator, device=device, dtype=self.unet.dtype)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/diffusers/utils/torch_utils.py", line 59, in randn_tensor
+    gen_device_type = generator.device.type if not isinstance(generator, list) else generator[0].device.type
+                      ^^^^^^^^^^^^^^^^
+AttributeError: 'int' object has no attribute 'device'
