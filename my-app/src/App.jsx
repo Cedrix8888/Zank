@@ -9,7 +9,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
-          <Route path="/workspace" element={<Workspace />} />
+          <Route path="/workspace" element={<Workspace />}>
+            <Route path=":id" element={<Workspace />} />
+          </Route>
         </Route>
       </Routes>
     </div>

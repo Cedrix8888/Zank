@@ -5,7 +5,7 @@ export default function Header() {
     return (
         <header className="fixed border-b-gray-400 inset-x-0 top-0 z-50 bg-white">
             <nav className="flex items-center justify-between px-8">
-                <Link to="/" className="flex">
+                <Link to="/" className='flex'>
                     <img src="/favicon.svg" alt="Zank Logo" className="h-8 w-8" />
                     <p className="font-serif text-[16px] text-black font-semibold pt-[10px] pl-1">Zank</p>
                 </Link>
