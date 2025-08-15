@@ -66,3 +66,8 @@ Traceback (most recent call last):
     gen_device_type = generator.device.type if not isinstance(generator, list) else generator[0].device.type
                       ^^^^^^^^^^^^^^^^
 AttributeError: 'int' object has no attribute 'device'
+
+
+
+### something for front-end
+### each icon downloaded from Google_font are set to size:80 and color:#000000
