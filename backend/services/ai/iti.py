@@ -7,8 +7,8 @@ from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL
 from diffusers.models.unets.unet_2d_condition import UNet2DConditionModel
 from diffusers.models.attention_processor import AttnProcessor2_0
 
-from backend.diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
-from lib_layerdiffuse.vae import TransparentVAEDecoder, TransparentVAEEncoder
+from backend.services.ai.diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
+from backend.services.ai.vae import TransparentVAEDecoder, TransparentVAEEncoder
 from lib_layerdiffuse.utils import download_model
 
 # Load models

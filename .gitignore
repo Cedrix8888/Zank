@@ -3,3 +3,5 @@ __pycache__/
 .idea/
 .gradio/
 .DS_Store
+secrets.py
+.env
