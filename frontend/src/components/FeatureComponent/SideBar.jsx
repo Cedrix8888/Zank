@@ -23,25 +23,31 @@ export default function Sidebar() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (isLoading) return;
 
         try {
         setIsLoading(true);
         
+        let endpoint = '';
         let submitData;
+
             switch (id) {
                 case 'background':
+                    endpoint = '/api/background';
                     submitData = { color: formData.color, width: formData.width, height: formData.height };
                     break;
                 case 'back_layer':
-                    submitData = { positive_prompt: formData.positive_prompt };
+                    endpoint = '/api/back_layer';
+                    submitData = { positive_prompt: formData.bl_positive_prompt };
                     break;
+                case 'front_layer':
+                    endpoint = '/api/front_layer';
+                    submitData = { positive_prompt: formData.fl_positive_prompt };
                 default:
                     submitData = { color: formData.color, width: formData.width, height: formData.height, positive_prompt: formData.positive_prompt };
             }
     
-        const response = await fetch('/api/submit', {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
