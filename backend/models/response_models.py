@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional, List, Dict
+from typing import Optional
 
 class BaseResponse(BaseModel):
     """基础响应模型,所有响应模型的父类"""
@@ -10,9 +10,11 @@ class BaseResponse(BaseModel):
 
 class AIResultResponse(BaseResponse):
     """AI生成结果响应模型"""
-    content: str = Field(..., description="AI生成的内容")
-    model_used: str = Field(..., description="使用的AI模型名称")
-    processing_time: Optional[str] = Field(None, description="处理时间(毫秒)")
+    positive_prompt: Optional(str) = Field(None, description="用户输入的正面提示词")
+    negative_prompt: Optional[str] = Field(None, description="用户输入的负面提示词")
+    width: Optional(int) = Field(None, gt=0, description="生成图像的宽度")
+    height: Optional(int) = Field(None, gt=0, description="生成图像的高度")
+    content: str = Field(..., description="AI生成图像的路径")
     created_at: datetime = Field(..., description="生成时间(UTC)")
     
     class Config:
@@ -23,30 +25,7 @@ class AIHistoryItem(BaseModel):
     """历史记录项模型,用于展示用户的AI交互历史"""
     id: str = Field(..., description="记录ID")
     prompt: str = Field(..., description="用户输入的提示词")
-    content_preview: str = Field(..., description="AI生成内容的预览(前50字符)")
-    model_name: str = Field(..., description="使用的AI模型")
     created_at: datetime = Field(..., description="生成时间")
-
-class AIHistoryResponse(BaseResponse):
-    """AI历史记录列表响应模型"""
-    total_count: int = Field(..., description="总记录数")
-    items: List[AIHistoryItem] = Field(..., description="历史记录列表")
-    page: int = Field(..., description="当前页码")
-    page_size: int = Field(..., description="每页记录数")
-    total_pages: int = Field(..., description="总页数")
-
-class ModelInfo(BaseModel):
-    """AI模型信息模型,用于展示可用模型"""
-    name: str = Field(..., description="模型名称")
-    description: str = Field(..., description="模型描述")
-    capabilities: List[str] = Field(..., description="模型能力列表")
-    is_available: bool = Field(..., description="模型是否可用")
-    performance: Dict[str, str] = Field(..., description="模型性能指标")
-
-class ModelListResponse(BaseResponse):
-    """模型列表响应模型"""
-    models: List[ModelInfo] = Field(..., description="可用AI模型列表")
-    total_models: int = Field(..., description="模型总数")
 
 class ErrorResponse(BaseModel):
     """错误响应模型,用于统一错误返回格式"""
