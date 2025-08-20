@@ -1,14 +1,14 @@
 import { Link, useParams} from 'react-router-dom';
 import { useState } from 'react';
 
-export default function Sidebar() {
+export default function Sidebar({ setImageUrl }) {
     const [isLoading, setIsLoading] = useState(false);
     const { id } = useParams();
 
     const [formData, setFormData] = useState({
         color: '#000000',
-        width: '1080',
-        height: '1920',
+        width: 1080,
+        height: 1920,
         bl_positive_prompt: 'glass bottle, high quality',
         fl_positive_prompt: ''
     });
@@ -33,8 +33,13 @@ export default function Sidebar() {
 
             switch (id) {
                 case 'background':
-                    endpoint = '/api/background';
-                    submitData = { color: formData.color, width: formData.width, height: formData.height };
+                    endpoint = '/api/ai/rgb';
+                    submitData = {
+                        user_id: "zx",
+                        color: formData.color, 
+                        width: formData.width, 
+                        height: formData.height 
+                    };
                     break;
                 case 'back_layer':
                     endpoint = '/api/back_layer';
@@ -51,12 +56,14 @@ export default function Sidebar() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'api_key': ''
             },
             body: JSON.stringify(submitData)
         });
 
         if (response.ok) {
             const result = await response.json();
+            setImageUrl(result.local_path)
             console.log('提交成功:', result);
         } else {
             console.error('提交失败');
@@ -98,7 +105,7 @@ export default function Sidebar() {
     };
 
     switch (id) {
-        case 'background':
+        case 'rgb':
             return (
                 <div className="top-[36.5px] fixed left-0 w-60 h-full bg-gray-100 shadow-lg">
                     <form className="mx-4 mt-4 h-[20%] bg-gray-200 overflow-hidden space-y-2 shadow-sm" onSubmit={handleSubmit}>
@@ -122,21 +129,21 @@ export default function Sidebar() {
                         </div>
                     </form>
                     <div className="absolute bottom-[45px] w-full h-16 flex justify-evenly items-center px-12 bg-gray-100 gap-16">
-                        <Link to="/workspace/background" className="blcok cursor-not-allowed bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
+                        <Link to="/workspace/rgb" className="blcok cursor-not-allowed bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
                             <img src="/left_arrow.svg" alt="left_arrow" className="h-10 w-12" />
                         </Link>
-                        <Link to="/workspace/back_layer" className="block cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
+                        <Link to="/workspace/layer" className="block cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
                             <img src="/right_arrow.svg" alt="right_arrow" className="h-10 w-12" />
                         </Link>
                     </div>
                 </div>
             );
         
-        case 'back_layer':
+        case 'layer':
             return (
                 <div className="top-[36.5px] fixed left-0 w-60 h-full bg-gray-100 shadow-lg">
                     <form className="mx-4 mt-4 h-[18%] bg-gray-200 overflow-hidden space-y-2 shadow-sm relative" onSubmit={handleSubmit}>
-                        <p className="font-stretch-ultra-condensed font-semibold text-center">please make your background layer</p>
+                        <p className="font-stretch-ultra-condensed font-semibold text-center">please make your layers</p>
                         <div className="flex justify-center">
                             <textarea name="positive_prompt" className="resize-none w-full mx-2 text-sm font-stretch-ultra-condensed outline-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded-[2px]" value={formData.positive_prompt} onChange={handleChange} placeholder="please input your positive prompt" required disabled={isLoading} />
                         </div>
@@ -148,21 +155,21 @@ export default function Sidebar() {
                         </div>
                     </form>
                         <div className="absolute bottom-[45px] w-full h-16 flex justify-evenly items-center px-12 bg-gray-100 gap-16">
-                            <Link to="/workspace/background" className="blcok cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
+                            <Link to="/workspace/rgb" className="blcok cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
                                 <img src="/left_arrow.svg" alt="left_arrow" className="h-10 w-12" />
                             </Link>
-                            <Link to="/workspace/front_layer" className="block cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
+                            <Link to="/workspace/svg" className="block cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
                                 <img src="/right_arrow.svg" alt="right_arrow" className="h-10 w-12" />
                             </Link>
                     </div>
                 </div>
             );
         
-        case 'front_layer':
-            return (
+        case 'svg':
+            return(
                 <div className="top-[36.5px] fixed left-0 w-60 h-full bg-gray-100 shadow-lg">
                     <form className="mx-4 mt-4 h-[18%] bg-gray-200 overflow-hidden space-y-2 shadow-sm relative" onSubmit={handleSubmit}>
-                        <p className="font-stretch-ultra-condensed font-semibold text-center">please make your background layer</p>
+                        <p className="font-stretch-ultra-condensed font-semibold text-center">please make your svg images</p>
                         <div className="flex justify-center">
                             <textarea name="positive_prompt" className="resize-none w-full mx-2 text-sm font-stretch-ultra-condensed outline-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded-[2px]" value={formData.positive_prompt} onChange={handleChange} placeholder="please input your positive prompt" required disabled={isLoading} />
                         </div>
@@ -174,10 +181,10 @@ export default function Sidebar() {
                         </div>
                     </form>
                         <div className="absolute bottom-[45px] w-full h-16 flex justify-evenly items-center px-12 bg-gray-100 gap-16">
-                            <Link to="/workspace/background" className="blcok cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
+                            <Link to="/workspace/layer" className="blcok cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
                                 <img src="/left_arrow.svg" alt="left_arrow" className="h-10 w-12" />
                             </Link>
-                            <Link to="/workspace/front_layer" className="block cursor-pointer bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
+                            <Link to="/workspace/svg" className="blcok cursor-not-allowed bg-white hover:bg-gray-300 hover:-translate-y-0.5 transition-all hover:shadow-sm rounded-3xl">
                                 <img src="/right_arrow.svg" alt="right_arrow" className="h-10 w-12" />
                             </Link>
                     </div>
