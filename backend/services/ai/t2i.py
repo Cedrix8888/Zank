@@ -9,7 +9,7 @@ from diffusers.models.attention_processor import AttnProcessor2_0
 
 from backend.services.ai.diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
 from backend.services.ai.vae import TransparentVAEDecoder, TransparentVAEEncoder
-from lib_layerdiffuse.utils import download_model
+from utils.model import download_model
 
 # Load models
 # RealVisXL_V4.0 is a specific version of SDXL

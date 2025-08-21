@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 # 后端根目录

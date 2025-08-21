@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 import jwt
 from passlib.context import CryptContext
 from models.db_models import User
-from utils.database import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "your-secret-key"  # Move to environment variables

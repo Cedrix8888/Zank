@@ -1,3 +1,4 @@
+import os
 from torch.hub import download_url_to_file
 
 # download model from URL to local path
