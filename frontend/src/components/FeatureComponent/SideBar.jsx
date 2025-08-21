@@ -6,11 +6,10 @@ export default function Sidebar({ setImageUrl }) {
     const { id } = useParams();
 
     const [formData, setFormData] = useState({
-        color: '#000000',
+        user_id: "zx",
+        color: "#000000",
         width: 1080,
         height: 1920,
-        bl_positive_prompt: 'glass bottle, high quality',
-        fl_positive_prompt: ''
     });
 
     function handleChange(e) {
@@ -32,31 +31,31 @@ export default function Sidebar({ setImageUrl }) {
         let submitData;
 
             switch (id) {
-                case 'background':
+                case 'rgb':
                     endpoint = '/api/ai/rgb';
                     submitData = {
-                        user_id: "zx",
+                        user_id: formData.user_id,
                         color: formData.color, 
                         width: formData.width, 
                         height: formData.height 
                     };
                     break;
-                case 'back_layer':
-                    endpoint = '/api/back_layer';
-                    submitData = { positive_prompt: formData.bl_positive_prompt };
+                case 'layer':
+                    endpoint = '/api/ai/layer';
+                    submitData = {};
                     break;
-                case 'front_layer':
-                    endpoint = '/api/front_layer';
-                    submitData = { positive_prompt: formData.fl_positive_prompt };
+                case 'svg':
+                    endpoint = '/api/ai/svg';
+                    submitData = {};
                 default:
-                    submitData = { color: formData.color, width: formData.width, height: formData.height, positive_prompt: formData.positive_prompt };
+                    submitData = {};
             }
     
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'api_key': ''
+                'Content-Type': "application/json",
+                'api-key': "u#Tqw(]%CTO+u&[FQ&G6apADEmKzOqc[Aqk-6W~Z"
             },
             body: JSON.stringify(submitData)
         });
@@ -80,26 +79,22 @@ export default function Sidebar({ setImageUrl }) {
         e.preventDefault();
 
         switch (id) {
-            case 'background':
+            case 'rgb':
                 setFormData(prev => ({
                     ...prev,
                     color: '#000000',
-                    width: '1080',
-                    height: '1920'
+                    width: 1080,
+                    height: 1920
                 }));
                 break;
-            case 'back_layer':
+            case 'layer':
                 setFormData(prev => ({
                     ...prev,
-                    positive_prompt: 'glass bottle, high quality'
                 }));
                 break;
             default:
                 setFormData({
-                    color: '#000000',
-                    width: '1080',
-                    height: '1920',
-                    positive_prompt: 'glass bottle, high quality'
+                    ...prev,
                 });
         }
     };
@@ -122,7 +117,7 @@ export default function Sidebar({ setImageUrl }) {
                             <input type="text" name="height" id="height" className="w-16 outline-1 mr-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded-[2px]" value={formData.height} onChange={handleChange} required disabled={isLoading} />
                         </div>
                         <div className='flex justify-center'>
-                            <button type="submit" className="text-sm w-[80%] cursor-pointer bg-gray-300 hover:bg-gray-300/70 hover:-translate-y-0.5 transition-all hover:shadow-sm" disabled={isLoading} >Submit</button>
+                            <button type="submit" className="text-sm w-[80%] cursor-pointer bg-gray-300 hover:bg-gray-300/70 hover:-translate-y-0.5 transition-all hover:shadow-sm" disabled={isLoading} onClick={handleSubmit}>Submit</button>
                         </div>
                         <div className='flex justify-center'>
                             <button type="button" className="text-sm w-[80%] cursor-pointer bg-gray-300 hover:bg-gray-300/70 hover:-translate-y-0.5 transition-all hover:shadow-sm" disabled={isLoading} onClick={handleReset} >Reset</button>
@@ -174,7 +169,7 @@ export default function Sidebar({ setImageUrl }) {
                             <textarea name="positive_prompt" className="resize-none w-full mx-2 text-sm font-stretch-ultra-condensed outline-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded-[2px]" value={formData.positive_prompt} onChange={handleChange} placeholder="please input your positive prompt" required disabled={isLoading} />
                         </div>
                         <div className='flex justify-center'>
-                            <button type="submit" className="text-sm w-[80%] cursor-pointer bg-gray-300 hover:bg-gray-300/70 hover:-translate-y-0.5 transition-all hover:shadow-sm" disabled={isLoading} >Submit</button>
+                            <button type="submit" className="text-sm w-[80%] cursor-pointer bg-gray-300 hover:bg-gray-300/70 hover:-translate-y-0.5 transition-all hover:shadow-sm" disabled={isLoading}>Submit</button>
                         </div>
                         <div className="flex justify-center">
                             <button type="button" className="text-sm w-[80%] cursor-pointer bg-gray-300 hover:bg-gray-300/70 hover:-translate-y-0.5 transition-all hover:shadow-sm" disabled={isLoading} onClick={handleReset}>Reset</button>

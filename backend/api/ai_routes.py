@@ -1,57 +1,57 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from models.request_models import LayerRequest  # 导入请求模型
-from models.response_models import AIResultResponse, ErrorResponse  # 错误响应模型
-from services.ai_service import gen_solid_layer  # 导入AI业务逻辑
-from utils.logger import logger  # 导入日志工具
-from security.api_key import get_api_key  # 导入API密钥验证依赖（如果需要）
+from models.request_models import RgbRequest
+from models.response_models import RgbResponse, ErrorResponse
+from services.ai.ai_service import layer_rgb
+from utils.security import get_api_key
+from dotenv import load_dotenv
+
+load_dotenv()
 
 router = APIRouter(
     prefix="/ai",
-    responses={  # 全局响应模型
+    tags=["AI"],
+    dependencies=[Depends(get_api_key)],
+    responses={
         400: {"model": ErrorResponse, "description": "无效请求"},
+        401: {"model": ErrorResponse, "description": "API Key 验证失败"},  
         500: {"model": ErrorResponse, "description": "服务器错误"}
     }
 )
 
 @router.post(
-    "/generate",
-    response_model=AIResultResponse,  # 明确响应数据结构
-    summary="生成AI响应",
-    description="接收用户提示词,调用AI模型生成响应内容"
+    path="/rgb",
+    response_model=RgbResponse,  
+    summary="生成RGB图像",
+    description="生成指定颜色的RGB图像",
 )
-async def solid_layer(
-    request: LayerRequest,  # 请求数据（自动验证）
-    api_key: str = Depends(get_api_key)  # 可选：API密钥验证
-):
+async def request_rgb(request: RgbRequest):
     try:
-                
-        # 调用服务层处理（业务逻辑与路由分离）
-        result = await gen_solid_layer(
-            prompt=request.prompt,
-            model_name=request.model_name,  # 从请求中获取模型名称
-            temperature=request.temperature  # 从请求中获取温度参数
+        result = await layer_rgb(
+            user_id=request.user_id,
+            width=request.width,
+            height=request.height,
+            color=request.color
         )
         
-        # 返回符合响应模型的数据
-        return GenerateResponse(
+        return RgbResponse(
             request_id=result["request_id"],
-            content=result["content"],
-            model_used=request.model_name,
+            local_path=result["local_path"],
             timestamp=result["timestamp"]
         )
-    
     except ValueError as e:
-        # 处理业务逻辑错误（如无效参数）
-        logger.warning(f"请求处理失败: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            detail={
+                "user_id": request.user_id,
+                "error_message": str(e),
+                }
         )
+        
     except Exception as e:
-        # 处理未知错误
-        logger.error(f"服务器处理错误: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="AI服务暂时不可用，请稍后再试"
+            detail={
+                "user_id": request.user_id,
+                "error_message": "服务器内部错误，请稍后再试。",
+            }
         )

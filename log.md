@@ -71,3 +71,5 @@ AttributeError: 'int' object has no attribute 'device'
 
 ### something for front-end
 ### each icon downloaded from Google_font are set to size:80 and color:#000000
+
+INFO:     127.0.0.1:57524 - "POST /api/ai/rgb HTTP/1.1" 401 Unauthorized
