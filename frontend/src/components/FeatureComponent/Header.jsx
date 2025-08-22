@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function Header() {
     return (
-        <header className="fixed border-b-gray-400 inset-x-0 top-0 z-50 bg-white">
+        <header className="fixed border-b-gray-400 inset-x-0 top-0 z-50 bg-white shadow-md">
             <nav className="flex items-center justify-between px-8">
                 <Link to="/" className='flex'>
                     <img src="/favicon.svg" alt="Zank Logo" className="h-8 w-8" />

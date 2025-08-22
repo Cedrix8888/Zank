@@ -5,7 +5,7 @@ import Workspace from "./pages/Workspace.jsx"
 
 export default function App() {
   return (
-    <div>
+    <div className="antialiased h-full w-full select-none">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

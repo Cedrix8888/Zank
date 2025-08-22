@@ -18,7 +18,7 @@ async def layer_rgb(user_id: str = "zx",
     return {
         "request_id": str(uuid.uuid4()),
         "local_path": local_path,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now()
     }
     
     

@@ -5,12 +5,12 @@ from config import AI_IMAGE_ROOT
 
 def gen_img_path(user_id, is_output=True, file_format="png"):
     date_str = datetime.now().strftime("%Y%m%d%H%M%S")
-    user_dir = AI_IMAGE_ROOT / f"user_{user_id}" / date_str / "output" if is_output else "input"
+    user_dir = AI_IMAGE_ROOT / f"user_{user_id}" / date_str / ("output" if is_output else "input")
     os.makedirs(user_dir, exist_ok=True)
     prefix = "output_" if is_output else "input_"
     file_name = f"{prefix}img_{uuid.uuid4().hex}.{file_format}"
     local_path = user_dir / file_name
-    return local_path
+    return str(local_path)
 
 def hex_rgb(hex: str = "#000000"):
     hex = hex.lstrip("#")

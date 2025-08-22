@@ -25,33 +25,32 @@ router = APIRouter(
     description="生成指定颜色的RGB图像",
 )
 async def request_rgb(request: RgbRequest):
-    try:
-        result = await layer_rgb(
-            user_id=request.user_id,
-            width=request.width,
-            height=request.height,
-            color=request.color
-        )
-        
-        return RgbResponse(
-            request_id=result["request_id"],
-            local_path=result["local_path"],
-            timestamp=result["timestamp"]
-        )
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "user_id": request.user_id,
-                "error_message": str(e),
-                }
-        )
-        
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail={
-                "user_id": request.user_id,
-                "error_message": "服务器内部错误，请稍后再试。",
-            }
-        )
+    # try:
+    result = await layer_rgb(
+        user_id=request.user_id,
+        width=request.width,
+        height=request.height,
+        color=request.color
+    )
+    
+    return RgbResponse(
+        request_id=result["request_id"],
+        local_path=result["local_path"],
+        timestamp=result["timestamp"]
+    )
+    # except ValueError as e:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail={
+    #             "user_id": request.user_id,
+    #             "error_message": str(e),
+    #             }
+    #     )
+    # except Exception as e:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail={
+    #             "user_id": request.user_id,
+    #             "error_message": "服务器内部错误，请稍后再试。",
+    #         }
+    #     )
