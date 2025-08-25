@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_CONFIG } from '/config'; // 导入配置
 
 export default function Canvas({ imageUrl}) {
     const [fullImageUrl, setFullImageUrl] = useState(null);
@@ -11,8 +12,7 @@ export default function Canvas({ imageUrl}) {
 
     useEffect(() => {
         if (imageUrl) {
-            const baseUrl = 'http://localhost:8000/';
-            setFullImageUrl(`${baseUrl}${imageUrl}`);
+            setFullImageUrl(`${API_CONFIG.baseUrl}${imageUrl}`);
         }
     }, [imageUrl]);
 
@@ -40,7 +40,6 @@ export default function Canvas({ imageUrl}) {
     const handleRotate = (amount) => {
         setRotation(prev => {
             const newRotation = prev + amount;
-            // Normalize rotation to stay within 0-360 range
             return ((newRotation % 360) + 360) % 360;
         });
     };
@@ -65,28 +64,21 @@ export default function Canvas({ imageUrl}) {
 
     return (
         <div className="top-[36.5px] fixed right-0 w-290 h-full bg-gray-100 shadow-lg">
-            <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-                <div className="flex gap-2 items-center bg-white p-2 rounded shadow">
-                    <button onClick={() => handleRotate(-1)} className="bg-gray-100 px-2 rounded">-1°</button>
-                    <button onClick={() => handleRotate(-15)} className="bg-gray-100 px-2 rounded">-15°</button>
-                    <input 
-                        type="number" 
-                        value={rotation} 
-                        onChange={handleRotateInput}
-                        className="w-16 text-center border rounded"
-                        min="0"
-                        max="360"
-                    />
-                    <button onClick={() => handleRotate(15)} className="bg-gray-100 px-2 rounded">+15°</button>
-                    <button onClick={() => handleRotate(1)} className="bg-gray-100 px-2 rounded">+1°</button>
-                </div>
+            <div className="absolute left-2 top-2 p-2 bg-white rounded">
                 <div className="flex gap-2">
-                    <button onClick={() => handleScale(0.1)} className="bg-white p-2 rounded shadow">+</button>
-                    <button onClick={() => handleScale(-0.1)} className="bg-white p-2 rounded shadow">-</button>
-                    <button onClick={() => handleStretch('x', 0.1)} className="bg-white p-2 rounded shadow">↔+</button>
-                    <button onClick={() => handleStretch('x', -0.1)} className="bg-white p-2 rounded shadow">↔-</button>
-                    <button onClick={() => handleStretch('y', 0.1)} className="bg-white p-2 rounded shadow">↕+</button>
-                    <button onClick={() => handleStretch('y', -0.1)} className="bg-white p-2 rounded shadow">↕-</button>
+                    <p className="text-sm font-stretch-ultra-condensed">rotation(deg)</p>
+                    <p className="text-sm font-stretch-ultra-condensed pl-2">scaling</p>
+                    <p className="text-sm font-stretch-ultra-condensed pl-2.5">stretching:x</p>
+                    <p className="text-sm font-stretch-ultra-condensed">stretching:y</p>
+                </div>
+                <div className="flex gap-2 h-6">
+                    <input type="number" value={rotation} onChange={handleRotateInput} className="w-15 text-md font-stretch-ultra-condensed outline-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded shadow" min="0" max="360" placeholder='旋转角度'/>
+                    <img src="/add.svg" onClick={() => handleScale(0.1)} className="bg-white rounded shadow-sm p-1 transition-all hover:bg-[#fefefe] hover:-translate-y-0.25 hover:shadow-md" />
+                    <img src="/minimize.svg" onClick={() => handleScale(-0.1)} className="bg-white rounded shadow-sm pb-2.5 w-6 transition-all hover:bg-[#fefefe] hover:-translate-y-0.25 hover:shadow-md" />
+                    <img src="/add.svg" onClick={() => handleStretch('x', 0.1)} className="bg-white rounded shadow-sm p-1 transition-all hover:bg-[#fefefe] hover:-translate-y-0.25 hover:shadow-md" />
+                    <img src="/minimize.svg" onClick={() => handleStretch('x', -0.1)} className="bg-white rounded shadow-sm pb-2.5 w-6 transition-all hover:bg-[#fefefe] hover:-translate-y-0.25 hover:shadow-md" />
+                    <img src="/add.svg" onClick={() => handleStretch('y', 0.1)} className="bg-white rounded shadow-sm p-1 transition-all hover:bg-[#fefefe] hover:-translate-y-0.25 hover:shadow-md" />
+                    <img src="/minimize.svg" onClick={() => handleStretch('y', -0.1)} className="bg-white rounded shadow-sm pb-2.5 w-6 transition-all hover:bg-[#fefefe] hover:-translate-y-0.25 hover:shadow-md" />
                 </div>
             </div>
             <div className="w-full h-full flex justify-center items-center p-8 pb-16">

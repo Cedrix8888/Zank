@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
 
 class BaseResponse(BaseModel):
     user_id: str = Field(default="zx", description="用户ID")
@@ -14,8 +13,8 @@ class RgbResponse(BaseResponse):
     color: tuple = Field(default=(255, 255, 255), description="生成图像的颜色")
     
 class LayerResponse(BaseResponse):
-    positive_prompt: Optional[str] = Field(None, description="用户输入的正面提示词")
-    negative_prompt: Optional[str] = Field(None, description="用户输入的负面提示词")
+    prompt_pos: str = Field("glass bottle, high quality", description="用户输入的正面提示词")
+    prompt_neg: str = Field("face asymmetry, eyes asymmetry, deformed eyes, open mouth", description="用户输入的负面提示词")
     class Config:
         from_attributes = True
 

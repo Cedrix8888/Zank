@@ -171,7 +171,7 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLPipeline):
             assert negative_pooled_prompt_embeds is not None, "Failed to generate negative_pooled_prompt_embeds"
 
         # Batch
-        latents = latents.to(device)
+        latents_in = latents.to(device)
         add_time_ids = add_time_ids.repeat(batch_size, 1).to(device)
         add_neg_time_ids = add_neg_time_ids.repeat(batch_size, 1).to(device)
         prompt_embeds = prompt_embeds.repeat(batch_size, 1, 1).to(device)
@@ -192,5 +192,5 @@ class KDiffusionStableDiffusionXLPipeline(StableDiffusionXLPipeline):
         )
 
         # Result
-        results = sample_dpmpp_2m(self.k_model, latents, sigmas, extra_args=sampler_kwargs, disable=False)
-        return StableDiffusionXLPipelineOutput(images=results)
+        latents_out = sample_dpmpp_2m(self.k_model, latents_in, sigmas, extra_args=sampler_kwargs, disable=False)
+        return latents_out

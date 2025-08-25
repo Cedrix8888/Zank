@@ -7,9 +7,11 @@ export default function Sidebar({ setImageUrl }) {
 
     const [formData, setFormData] = useState({
         user_id: "zx",
-        color: "#000000",
         width: 1080,
         height: 1920,
+        color: "#000000",
+        prompt_pos: "glass bottle, high quality",
+        prompt_neg: "face asymmetry, eyes asymmetry, deformed eyes, open mouth"
     });
 
     function handleChange(e) {
@@ -35,14 +37,20 @@ export default function Sidebar({ setImageUrl }) {
                     endpoint = '/api/ai/rgb';
                     submitData = {
                         user_id: formData.user_id,
-                        color: formData.color, 
                         width: formData.width, 
-                        height: formData.height 
+                        height: formData.height,
+                        color: formData.color
                     };
                     break;
                 case 'layer':
                     endpoint = '/api/ai/layer';
-                    submitData = {};
+                    submitData = {
+                        user_id: formData.user_id,
+                        width: formData.width, 
+                        height: formData.height,
+                        prompt_pos: formData.prompt_pos,
+                        prompt_neg: formData.prompt_neg
+                    };
                     break;
                 case 'svg':
                     endpoint = '/api/ai/svg';
@@ -82,14 +90,16 @@ export default function Sidebar({ setImageUrl }) {
             case 'rgb':
                 setFormData(prev => ({
                     ...prev,
-                    color: '#000000',
                     width: 1080,
-                    height: 1920
+                    height: 1920,
+                    color: '#000000',
                 }));
                 break;
             case 'layer':
                 setFormData(prev => ({
                     ...prev,
+                    prompt_pos: "",
+                    prompt_neg: "",
                 }));
                 break;
             default:
@@ -137,10 +147,15 @@ export default function Sidebar({ setImageUrl }) {
         case 'layer':
             return (
                 <div className="top-[36.5px] fixed left-0 w-60 h-full bg-gray-100 shadow-lg">
-                    <form className="mx-4 mt-4 h-[18%] bg-gray-200 overflow-hidden space-y-2 shadow-sm relative" onSubmit={handleSubmit}>
+                    <form className="mx-4 mt-4 h-[32%] bg-gray-200 overflow-hidden space-y-2 shadow-sm relative" onSubmit={handleSubmit}>
                         <p className="font-stretch-ultra-condensed font-semibold text-center">please make your layers</p>
+                        <p className="font-stretch-ultra-condensed font-semibold pl-2">positive_prompt:</p>
                         <div className="flex justify-center">
-                            <textarea name="positive_prompt" className="resize-none w-full mx-2 text-sm font-stretch-ultra-condensed outline-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded-[2px]" value={formData.positive_prompt} onChange={handleChange} placeholder="please input your positive prompt" required disabled={isLoading} />
+                            <textarea name="positive_prompt" className="resize-none w-full mx-2 text-sm font-stretch-ultra-condensed outline-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded-[2px]" value={formData.prompt_pos} onChange={handleChange} placeholder="please input your positive prompt" required disabled={isLoading} />
+                        </div>
+                        <p className="font-stretch-ultra-condensed font-semibold pl-2">negative_prompt:</p>
+                        <div className="flex justify-center">
+                            <textarea name="positive_prompt" className="resize-none w-full mx-2 text-sm font-stretch-ultra-condensed outline-1 hover:ring-2 hover:ring-[#3b82f6]/50 hover:border-[#3b82f6] transition-all rounded-[2px]" value={formData.prompt_neg} onChange={handleChange} placeholder="please input your negative prompt" required disabled={isLoading} />
                         </div>
                         <div className='flex justify-center'>
                             <button type="submit" className="text-sm w-[80%] cursor-pointer bg-gray-300 hover:bg-gray-300/70 hover:-translate-y-0.5 transition-all hover:shadow-sm" disabled={isLoading} >Submit</button>
