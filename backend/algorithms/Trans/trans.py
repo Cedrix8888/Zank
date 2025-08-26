@@ -7,12 +7,12 @@ from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL
 from diffusers.models.unets.unet_2d_condition import UNet2DConditionModel
 from diffusers.models.attention_processor import AttnProcessor2_0
 
-from algorithms.Trans.diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
-from algorithms.Trans.vae import TransparentVAEDecoder, TransparentVAEEncoder
-from utils.model import download_model
+from diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
+from vae import TransparentVAEDecoder, TransparentVAEEncoder
+from utils import download_model
 
-def gen_trans(width: int = 1400,
-              height: int = 2993,
+def gen_trans(width: int = 1024,
+              height: int = 1024,
               prompt_pos: str = "glass bottle, high quality",
               prompt_neg: str = "face asymmetry, eyes asymmetry, deformed eyes, open mouth"
               ):
@@ -116,3 +116,5 @@ def gen_trans(width: int = 1400,
         image_list = [Image.fromarray(result) for result in result_list]
         return image_list
 
+if __name__ == "__main__":
+    gen_trans()[0].save("./static/test.png")
