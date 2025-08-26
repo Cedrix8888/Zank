@@ -14,7 +14,12 @@ export default defineConfig({
       '/api': {
       target: API_CONFIG.baseUrl,
       changeOrigin: true,
-    }
-  }
+      }
+    },
+    allowedHosts: [
+      "gpu-t4-hm-12l9p99kyrux1.asia-east1-c.c.codatalab-user-runtimes.internal",
+      "localhost",
+      "127.0.0.1"
+    ]
   },
 })
