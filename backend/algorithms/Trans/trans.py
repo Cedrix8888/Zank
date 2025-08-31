@@ -7,9 +7,9 @@ from diffusers.models.autoencoders.autoencoder_kl import AutoencoderKL
 from diffusers.models.unets.unet_2d_condition import UNet2DConditionModel
 from diffusers.models.attention_processor import AttnProcessor2_0
 
-from diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
-from vae import TransparentVAEDecoder, TransparentVAEEncoder
-from utils import download_model
+from algorithms.Trans.diffusers_kdiffusion_sdxl import KDiffusionStableDiffusionXLPipeline
+from algorithms.Trans.vae import TransparentVAEDecoder, TransparentVAEEncoder
+from utils.model import download_model
 
 def gen_trans(width: int = 1024,
               height: int = 1024,
