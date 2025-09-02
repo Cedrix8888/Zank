@@ -1,5 +1,5 @@
-from algorithms.Rgb.rgb import gen_rgb
-from algorithms.Trans.trans import gen_trans
+from algorithms.Img_gen.Rgb.rgb import gen_rgb
+from algorithms.Img_gen.Trans.trans import gen_trans
 from utils.image import gen_img_path
 from datetime import datetime
 import uuid

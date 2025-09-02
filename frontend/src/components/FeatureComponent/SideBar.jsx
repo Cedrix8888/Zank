@@ -1,7 +1,7 @@
 import { Link, useParams} from 'react-router-dom';
 import { useState } from 'react';
 
-export default function Sidebar({ setImageUrl }) {
+export default function Sidebar({ setImages }) {
     const [isLoading, setIsLoading] = useState(false);
     const { id } = useParams();
 
@@ -70,7 +70,13 @@ export default function Sidebar({ setImageUrl }) {
 
         if (response.ok) {
             const result = await response.json();
-            setImageUrl(result.local_path)
+            if (id === 'rgb') {
+                setImages(prev => ({ ...prev, rgb: result.local_path }));
+            } else if (id === 'layer') {
+                setImages(prev => ({ ...prev, trans: result.local_path }));
+            } else if (id === 'svg') {
+                setImages(prev => ({ ...prev, svg: result.local_path }));
+            }
             console.log('提交成功:', result);
         } else {
             console.error('提交失败');
