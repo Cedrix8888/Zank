@@ -6,8 +6,8 @@ from datetime import datetime
 import uuid
 
 async def layer_rgb(user_id: str = "zx",
-                    width: int = 1400,
-                    height: int = 2993,
+                    width: int = 1024,
+                    height: int = 1024,
                     is_output: bool = True,
                     file_format: str = "png",
                     color: str = "#000000",
@@ -24,8 +24,8 @@ async def layer_rgb(user_id: str = "zx",
     }
 
 async def layer_trans(user_id: str = "zx",
-                      width: int = 1400,
-                      height: int = 2993,
+                      width: int = 1024,
+                      height: int = 1024,
                       is_output: bool = True,
                       file_format: str = "png",
                       prompt_pos: str = "glass bottle, high quality",

@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 router = APIRouter(
-    prefix="/ai",
-    tags=["AI"],
+    prefix="/img",
+    tags=["图像生成"],
     dependencies=[Depends(get_api_key)],
     responses={
         400: {"model": ErrorResponse, "description": "无效请求"},

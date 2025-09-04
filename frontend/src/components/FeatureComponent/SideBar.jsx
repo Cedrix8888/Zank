@@ -35,7 +35,7 @@ export default function Sidebar({ setImages }) {
 
             switch (id) {
                 case 'rgb':
-                    endpoint = '/api/ai/rgb';
+                    endpoint = '/api/img/rgb';
                     submitData = {
                         user_id: formData.user_id,
                         width: formData.width, 
@@ -44,7 +44,7 @@ export default function Sidebar({ setImages }) {
                     };
                     break;
                 case 'layer':
-                    endpoint = '/api/ai/layer';
+                    endpoint = '/api/img/layer';
                     submitData = {
                         user_id: formData.user_id,
                         width: formData.width, 
@@ -54,7 +54,7 @@ export default function Sidebar({ setImages }) {
                     };
                     break;
                 case 'svg':
-                    endpoint = '/api/ai/svg';
+                    endpoint = '/api/img/svg';
                     submitData = {};
                 default:
                     submitData = {};
