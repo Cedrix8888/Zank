@@ -16,5 +16,10 @@ export default defineConfig({
       changeOrigin: true,
       }
     },
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      url_8000,
+    ],
   },
 })

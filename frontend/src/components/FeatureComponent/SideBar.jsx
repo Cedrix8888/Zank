@@ -8,8 +8,8 @@ export default function Sidebar({ setImages }) {
 
     const [formData, setFormData] = useState({
         user_id: "zx",
-        width: 1080,
-        height: 1920,
+        width: 1024,
+        height: 1024,
         color: "#000000",
         prompt_pos: "glass bottle, high quality",
         prompt_neg: "face asymmetry, eyes asymmetry, deformed eyes, open mouth"
