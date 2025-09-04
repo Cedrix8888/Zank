@@ -17,7 +17,9 @@ class LayerResponse(BaseResponse):
     prompt_neg: str = Field("face asymmetry, eyes asymmetry, deformed eyes, open mouth", description="用户输入的负面提示词")
     class Config:
         from_attributes = True
-
+        
+class SvgResponse(BaseResponse):
+    text: str = Field(..., description="生成的SVG文本内容")
 
 class ErrorResponse(BaseModel):
     user_id: str = Field("zx", description="用户ID")

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from models.request_models import RgbRequest, LayerRequest
-from models.response_models import RgbResponse, LayerResponse, ErrorResponse
-from services.ai.ai_service import layer_rgb, layer_trans
+from models.request_models import RgbRequest, LayerRequest, SvgRequest
+from models.response_models import RgbResponse, LayerResponse, SvgResponse, ErrorResponse
+from services.img.img_service import layer_rgb, layer_trans, layer_svg
 from utils.security import get_api_key
 from dotenv import load_dotenv
 
@@ -78,6 +78,50 @@ async def request_layer(request: LayerRequest):
             prompt_pos=request.prompt_pos,
             prompt_neg=request.prompt_neg
         )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "user_id": request.user_id,
+                "error_message": str(e),
+                }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={
+                "user_id": request.user_id,
+                "error_message": "服务器内部错误，请稍后再试。",
+            }
+        )
+
+@router.post(
+    path="/svg",
+    response_model=SvgResponse,  
+    summary="生成矢量文本",
+    description="根据传入文本生成矢量文本图像",
+)
+async def request_svg(request: SvgRequest):
+    try:
+        result = await layer_svg(
+            user_id=request.user_id,
+            text=request.text,
+            x=request.x,
+            y=request.y,
+            font_size=request.font_size,
+            font_family=request.font_family,
+            font_weight=request.font_weight,
+            fill=request.fill,
+            stroke=request.stroke,
+            stroke_width=request.stroke_width,
+            style=request.style
+        )
+        
+        return SvgResponse(
+            request_id=result["request_id"],
+            local_path=result["local_path"],
+            timestamp=result["timestamp"],
+            text=request.text)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

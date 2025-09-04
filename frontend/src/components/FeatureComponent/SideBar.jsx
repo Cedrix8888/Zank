@@ -1,5 +1,6 @@
 import { Link, useParams} from 'react-router-dom';
 import { useState } from 'react';
+import { API_CONFIG } from '/config'; // 导入配置
 
 export default function Sidebar({ setImages }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -71,11 +72,11 @@ export default function Sidebar({ setImages }) {
         if (response.ok) {
             const result = await response.json();
             if (id === 'rgb') {
-                setImages(prev => ({ ...prev, rgb: result.local_path }));
+                setImages(prev => ({ ...prev, rgb: `${API_CONFIG.baseUrl}${result.local_path}` }));
             } else if (id === 'layer') {
-                setImages(prev => ({ ...prev, trans: result.local_path }));
+                setImages(prev => ({ ...prev, trans: `${API_CONFIG.baseUrl}${result.local_path}` }));
             } else if (id === 'svg') {
-                setImages(prev => ({ ...prev, svg: result.local_path }));
+                setImages(prev => ({ ...prev, svg: `${API_CONFIG.baseUrl}${result.local_path}` }));
             }
             console.log('提交成功:', result);
         } else {
