@@ -17,7 +17,7 @@ def port_proxy(ports: list) -> dict:
     for port in ports:
         proxy_url = output.eval_js(f"google.colab.kernel.proxyPort({port})")
         proxy_results[port] = proxy_url
-
+    
     return proxy_results
 
 if __name__ == "__main__":

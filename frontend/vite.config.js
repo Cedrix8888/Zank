@@ -19,7 +19,7 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '127.0.0.1',
-      url_8000,
+      'proxy_url',
     ],
   },
 })

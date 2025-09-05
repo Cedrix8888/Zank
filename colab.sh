@@ -8,7 +8,7 @@ url_5173=$(echo "$PROXY_OUTPUT" | jq -r '.["5173"]')
 url_8000=$(echo "$PROXY_OUTPUT" | jq -r '.["8000"]')
 
 # Update the config.js file with the proxy URL
-sed -i '' "s|baseUrl: '[^']*'|baseUrl: '$url_5173'|g" frontend/config.js
+sed -i "s/baseUrl: '[^']*'/baseUrl: '$url_8000'/g" frontend/config.js
 
 # Update the vite.config.js file with the proxy URL
-sed -i '' "s|target: '[^']*'|target: '$url_8000'|g" frontend/vite.config.js
+sed -i "s/'proxy_url'/'$url_5173'/g" frontend/vite.config.js
