@@ -4,6 +4,14 @@
 from google.colab import output  # type: ignore
 import re
 import os
+import logging
+
+# 配置日志输出
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 def update_config_files(url_5173: str, url_8000: str):
     """
@@ -14,7 +22,7 @@ def update_config_files(url_5173: str, url_8000: str):
     url_8000: The proxy URL for port 8000
     """
     # Update config.js
-    config_path = os.path.join('frontend', 'config.js')
+    config_path = os.path.join('Zank/frontend', 'config.js')
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
             content = f.read()
@@ -23,11 +31,12 @@ def update_config_files(url_5173: str, url_8000: str):
             f.write(updated_content)
     
     # Update vite.config.js
-    vite_path = os.path.join('frontend', 'vite.config.js')
+    vite_path = os.path.join('Zank/frontend', 'vite.config.js')
     if os.path.exists(vite_path):
         with open(vite_path, 'r') as f:
             content = f.read()
-        updated_content = content.replace("'proxy_url'", f"'{url_5173}'")
+        cleaned_url = url_5173.replace("https://", "")
+        updated_content = content.replace("'proxy_url'", f"'{cleaned_url}'")
         with open(vite_path, 'w') as f:
             f.write(updated_content)
 
