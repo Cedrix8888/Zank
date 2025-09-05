@@ -35,8 +35,8 @@ def update_config_files(url_5173: str, url_8000: str):
     if os.path.exists(vite_path):
         with open(vite_path, 'r') as f:
             content = f.read()
-        cleaned_url = url_5173.replace("https://", "")
-        updated_content = content.replace("'proxy_url'", f"'{cleaned_url}'")
+        cleaned_url = re.sub(r"https://", "", url_5173)
+        updated_content = re.sub(r"'proxy_url'", f"'{cleaned_url}'", content)
         with open(vite_path, 'w') as f:
             f.write(updated_content)
 
