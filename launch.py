@@ -1,7 +1,35 @@
 # prepare all the things for launching the app in Colab which is much more bothering than in a local environment
+# it should be run in a colab unit
 
 from google.colab import output  # type: ignore
-import json
+import re
+import os
+
+def update_config_files(url_5173: str, url_8000: str):
+    """
+    Update the configuration files with the proxy URLs.
+    
+    Parameters:
+    url_5173: The proxy URL for port 5173
+    url_8000: The proxy URL for port 8000
+    """
+    # Update config.js
+    config_path = os.path.join('frontend', 'config.js')
+    if os.path.exists(config_path):
+        with open(config_path, 'r') as f:
+            content = f.read()
+        updated_content = re.sub(r"baseUrl: '[^']*'", f"baseUrl: '{url_8000}'", content)
+        with open(config_path, 'w') as f:
+            f.write(updated_content)
+    
+    # Update vite.config.js
+    vite_path = os.path.join('frontend', 'vite.config.js')
+    if os.path.exists(vite_path):
+        with open(vite_path, 'r') as f:
+            content = f.read()
+        updated_content = content.replace("'proxy_url'", f"'{url_5173}'")
+        with open(vite_path, 'w') as f:
+            f.write(updated_content)
 
 def port_proxy(ports: list) -> dict:
     """
@@ -23,4 +51,7 @@ def port_proxy(ports: list) -> dict:
 if __name__ == "__main__":
     ports_to_proxy = [5173, 8000]  # Add more ports if needed
     proxied_ports = port_proxy(ports_to_proxy)
-    print(json.dumps(proxied_ports))  # Print the dictionary as a JSON string
+    
+    # Update configuration files with proxy URLs
+    update_config_files(proxied_ports[5173], proxied_ports[8000])
+    
