@@ -3,8 +3,8 @@
 # This script sets up a Google Colab environment for running a specific project(Zank).
 
 # 定义目录路径
-FRONTEND_DIR="./Zank/frontend"
-BACKEND_DIR="./Zank/backend"
+FRONTEND_DIR="./frontend"
+BACKEND_DIR="./backend"
 
 # 检查前端目录是否存在
 if [ ! -d "$FRONTEND_DIR" ]; then

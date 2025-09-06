@@ -35,8 +35,9 @@ def update_config_files(url_5173: str, url_8000: str):
     if os.path.exists(vite_path):
         with open(vite_path, 'r') as f:
             content = f.read()
-        cleaned_url = re.sub(r"https://", "", url_5173)
-        updated_content = re.sub(r"'proxy_url'", f"'{cleaned_url}'", content)
+        cleaned_url = re.sub(r"https://5173-", "", url_5173)
+        final_url = re.sub(r"-b.us-west1-1.prod.colab.dev", ".us-west1-b.c.codatalab-user-runtimes.internal", cleaned_url)
+        updated_content = re.sub(r"proxy_url", f"{final_url}", content)
         with open(vite_path, 'w') as f:
             f.write(updated_content)
 
@@ -57,10 +58,30 @@ def port_proxy(ports: list) -> dict:
     
     return proxy_results
 
+def auto_open_url(url: str):
+    """
+    Automatically open the target URL in Colab's environment via JavaScript.
+    Parameters:
+    url: The URL to be opened (proxied URL for port 5173)
+    """
+    if not url:
+        logger.error("Cannot open empty URL")
+        return
+    try:
+        # 执行JavaScript跳转：在新标签页打开URL（Colab支持window.open）
+        output.eval_js(f"window.open('{url}', '_blank');")
+        logger.info(f"Automatically opened URL in new tab: {url}")
+    except Exception as e:
+        # 若新标签页打开失败，退化为在当前页面跳转（备选方案）
+        output.eval_js(f"window.location.href = '{url}';")
+        logger.warning(f"Failed to open new tab, redirected current page to: {url} (Error: {str(e)})")
+
 if __name__ == "__main__":
     ports_to_proxy = [5173, 8000]  # Add more ports if needed
     proxied_ports = port_proxy(ports_to_proxy)
     
     # Update configuration files with proxy URLs
     update_config_files(proxied_ports[5173], proxied_ports[8000])
+    
+    print(proxied_ports[5173])  # Print the proxied URL for port 5173
     
